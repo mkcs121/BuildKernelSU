@@ -1,34 +1,49 @@
 BULID_KERNEL_DIR=`pwd`
-# 内核开源仓库地址
-KERNEL_SOURCE=https://github.com/dsunnerer/kernel_apollo
-# 仓库分支
-KERNEL_SOURCE_BRANCH=ten
-# CPU类型
+# 內核開源倉庫地址
+KERNEL_SOURCE=https://github.com/mkcs121/android_kernel_xiaomi_sm8150
+# 倉庫分支
+KERNEL_SOURCE_BRANCH=miui
+# CPU類型
 export ARCH=arm64
 # 配置文件
-KERNEL_CONFIG=vendor/apollo_user_defconfig
+KERNEL_CONFIG=raphael_defconfig
 KERNEL_NAME=${KERNEL_SOURCE##*/}
 
-# 由GoogleSource提供的Clang编译器（到这里查找：https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+refs）
+# 由GoogleSource提供的Clang編譯器（到這裡查找：https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+refs）
 CLANG_BRANCH=android11-release
-CLANG_VERSION=r365631c
-# 由GoogleSource提供的64位Gcc编译器（到这里查找：https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+refs）
-GCC64=android10-release
-# 由GoogleSource提供的32位Gcc编译器（到这里查找：https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+refs）
+CLANG_VERSION=r383902b
+# 由GoogleSource提供的64位Gcc編譯器（到這裡查找：https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+refs）
+GCC64=android11-release
+# 由GoogleSource提供的32位Gcc編譯器（到這裡查找：https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+refs）
 GCC32=
 
-# 编译时使用的指令
+# 編譯時使用的指令
+### 預設指令 ###
 BUILDKERNEL_CMDS="
 CC=clang
 CLANG_TRIPLE=aarch64-linux-gnu-
 CROSS_COMPILE=aarch64-linux-androidkernel-
+CROSS_COMPILE_ARM32=arm-linux-gnueabi-
 "
 
-# 原始boot.img文件下载地址（可以从卡刷包或线刷包里提取，重命名为boot-source.img放到本脚本所在目录下）
+### 自訂 ZyC-Clang 指令 ###
+#BUILDKERNEL_CMDS="
+#NM=llvm-nm
+#OBJCOPY=llvm-objcopy
+#LD=ld.lld
+#CROSS_COMPILE=aarch64-linux-gnu-
+#CROSS_COMPILE_ARM32=arm-linux-androideabi-
+#CC=clang
+#AR=llvm-ar
+#OBJDUMP=llvm-objdump
+#STRIP=llvm-strip
+#"
+
+# 原始boot.img文件下載地址（可以從卡刷包或線刷包裡提取，重命名為boot-source.img放到本腳本所在目錄下）
 SOURCE_BOOT_IMAGE_NEED_DOWNLOAD=false
 SOURCE_BOOT_IMAGE=ftp://192.168.1.1/boot.img
 
-# kprobe集成方案需要修改的参数（每个内核仓库需要开启的选项不统一，有的机型可能全都不用开，请自行逐个测试，第一个和第二个一般需要开）：
+# kprobe集成方案需要修改的參數（每個內核倉庫需要開啟的選項不統一，有的機型可能全都不用開，請自行逐個測試，第一個和第二個一般需要開）：
 ADD_OVERLAYFS_CONFIG=true
 ADD_KPROBES_CONFIG=true
 DISABLE_CC_WERROR=false
@@ -38,40 +53,40 @@ CLANG_DIR=$BULID_KERNEL_DIR/clang/$CLANG_BRANCH-$CLANG_VERSION/bin
 GCC64_DIR=$BULID_KERNEL_DIR/gcc/$GCC64-64/bin
 GCC32_DIR=$BULID_KERNEL_DIR/gcc/$GCC32-32/bin
 
-# 使用自定义Clang编译器
-CLANG_CUSTOM=false
+# 使用自定義Clang編譯器
+CLANG_CUSTOM=true
 [ "$CLANG_CUSTOM" = true ] && {
-	CLANG_DIR=/这里填写编译器文件夹的绝对路径/bin
+	CLANG_DIR=/home/kenshin/kernel/toolchains/zyc-clang/bin
 	[ ! -d $CLANG_DIR ] && {
 		echo "================================================================================"
-		echo "本次编译中止！原因：自定义 Clang 编译器文件夹 $CLANG_DIR 不存在"
+		echo "本次編譯中止！原因：自定義 Clang 編譯器文件夾 $CLANG_DIR 不存在"
 		echo "================================================================================" && return 2> /dev/null || exit
 	}
 }
-# 使用自定义64位Gcc编译器
+# 使用自定義64位Gcc編譯器
 GCC64_CUSTOM=false
 [ "$GCC64_CUSTOM" = true ] && {
-	GCC64_DIR=/这里填写编译器文件夹的绝对路径/bin
+	GCC64_DIR=/這裡填寫編譯器文件夾的絕對路徑/bin
 	[ ! -d $GCC64_DIR ] && {
 		echo "================================================================================"
-		echo "本次编译中止！原因：自定义 64 位交叉编译器文件夹 $GCC64_DIR 不存在"
+		echo "本次編譯中止！原因：自定義 64 位交叉編譯器文件夾 $GCC64_DIR 不存在"
 		echo "================================================================================" && return 2> /dev/null || exit
 	}
 }
-# 使用自定义32位Gcc编译器
+# 使用自定義32位Gcc編譯器
 GCC32_CUSTOM=false
 [ "$GCC32_CUSTOM" = true ] && {
-	GCC32_DIR=/这里填写编译器文件夹的绝对路径/bin
+	GCC32_DIR=/這裡填寫編譯器文件夾的絕對路徑/bin
 	[ ! -d $GCC32_DIR ] && {
 		echo "================================================================================"
-		echo "本次编译中止！原因：自定义 32 位交叉编译器文件夹 $GCC32_DIR 不存在"
+		echo "本次編譯中止！原因：自定義 32 位交叉編譯器文件夾 $GCC32_DIR 不存在"
 		echo "================================================================================" && return 2> /dev/null || exit
 	}
 }
 
 [ ! -f /.Checked ] && {
 	echo "================================================================================"
-	echo "准备检查并安装基本依赖包（不一定齐全，不同内核开源仓库所需依赖包可能不同）"
+	echo "准備檢查並安裝基本依賴包（不一定齊全，不同內核開源倉庫所需依賴包可能不同）"
 	echo "================================================================================" && read -t 3
 	apt update
 	[ -n "$(uname -v | grep -o 16.04)" ] && {
@@ -109,50 +124,51 @@ GCC32_CUSTOM=false
 
 [ ! -d img_repack_tools ] && {
 	echo "================================================================================"
-	echo "准备下载 IMG 解包、打包工具"
+	echo "准備下載 IMG 解包、打包工具"
 	echo "================================================================================" && read -t 1
 	git clone https://android.googlesource.com/platform/system/tools/mkbootimg img_repack_tools -b master-kernel-build-2022 --depth=1
 	[ "$?" != 0 ] && {
 		echo "================================================================================"
-		echo "本次编译中止！原因：IMG 解包、打包工具下载失败"
+		echo "本次編譯中止！原因：IMG 解包、打包工具下載失敗"
 		echo "================================================================================" && return 2> /dev/null || exit
 	}
 }
 
 [ $SOURCE_BOOT_IMAGE_NEED_DOWNLOAD = true ] && {
 	echo "================================================================================"
-	echo "准备下载 IMG 备份文件"
+	echo "准備下載 IMG 備份文件"
 	echo "================================================================================" && read -t 1
 	wget -O boot-source.img $SOURCE_BOOT_IMAGE
 }
 [ ! -f boot-source.img -o "$SOURCE_BOOT_IMAGE_NEED_DOWNLOAD" = true -a "$?" != 0 ] && {
 	echo "================================================================================" && rm -f boot-source.img
-	echo "本次编译中止！原因：IMG 备份文件不存在，请确认配置的下载地址可以用于正常直链下载，或手动将备份文件重命名为 boot-source.img 后放置到 $BULID_KERNEL_DIR 文件夹中"
+	echo "本次編譯中止！原因：IMG 備份文件不存在，請確認配置的下載地址可以用於正常直鏈下載，或手動將備份文件重命名為 boot-source.img 後放置到 $BULID_KERNEL_DIR 文件夾中"
 	echo "================================================================================" && return 2> /dev/null || exit
 }
 
 [ ! -d $KERNEL_NAME-$KERNEL_SOURCE_BRANCH ] && {
 	echo "================================================================================"
-	echo "准备获取安卓内核开源仓库"
+	echo "准備獲取安卓內核開源倉庫"
 	echo "================================================================================" && read -t 1
 	git clone $KERNEL_SOURCE -b $KERNEL_SOURCE_BRANCH $KERNEL_NAME-$KERNEL_SOURCE_BRANCH --depth=1
+	git -C $KERNEL_NAME-$KERNEL_SOURCE_BRANCH submodule update --init
 	[ "$?" != 0 ] && {
 		echo "================================================================================" && rm -rf $KERNEL_NAME-$KERNEL_SOURCE_BRANCH
-		echo "本次编译中止！原因：安卓内核开源仓库获取失败"
+		echo "本次編譯中止！原因：安卓內核開源倉庫獲取失敗"
 		echo "================================================================================" && return 2> /dev/null || exit
 	}
 }
 
 [ ! -d $CLANG_DIR ] && {
 	echo "================================================================================"
-	echo "准备下载 Clang 编译器"
+	echo "准備下載 Clang 編譯器"
 	echo "================================================================================" && read -t 1
 	wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/$CLANG_BRANCH/clang-$CLANG_VERSION.tar.gz
 	[ "$?" != 0 ] && {
 		wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/tags/$CLANG_BRANCH/clang-$CLANG_VERSION.tar.gz
 		[ "$?" != 0 ] && {
 			echo "================================================================================" && rm -f clang-$CLANG_VERSION.tar.gz
-			echo "本次编译中止！原因：Clang 编译器下载失败"
+			echo "本次編譯中止！原因：Clang 編譯器下載失敗"
 			echo "================================================================================" && return 2> /dev/null || exit
 		}
 	}
@@ -163,14 +179,14 @@ GCC32_CUSTOM=false
 
 [ -n "$GCC64" -a ! -d $GCC64_DIR -a "$GCC64_CUSTOM" != true ] && {
 	echo "================================================================================"
-	echo "准备下载 64 位 GCC 交叉编译器"
+	echo "准備下載 64 位 GCC 交叉編譯器"
 	echo "================================================================================" && read -t 1
 	wget -O gcc-$GCC64-64.tar.gz https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/heads/$GCC64.tar.gz
 	[ "$?" != 0 ] && {
 		wget -O gcc-$GCC64-64.tar.gz https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/tags/$GCC64.tar.gz
 		[ "$?" != 0 ] && {
 			echo "================================================================================" && rm -f gcc-$GCC64-64.tar.gz
-			echo "本次编译中止！原因：64 位 GCC 交叉编译器下载失败"
+			echo "本次編譯中止！原因：64 位 GCC 交叉編譯器下載失敗"
 			echo "================================================================================" && return 2> /dev/null || exit
 		}
 	}
@@ -180,14 +196,14 @@ GCC32_CUSTOM=false
 }
 [ -n "$GCC32" -a ! -d $GCC32_DIR -a "$GCC32_CUSTOM" != true ] && {
 	echo "================================================================================"
-	echo "准备下载 32 位 GCC 交叉编译器"
+	echo "准備下載 32 位 GCC 交叉編譯器"
 	echo "================================================================================" && read -t 1
 	wget -O gcc-$GCC32-32.tar.gz https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/refs/heads/$GCC32.tar.gz
 	[ "$?" != 0 ] && {
 		wget -O gcc-$GCC32-32.tar.gz https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/refs/tags/$GCC32.tar.gz
 		[ "$?" != 0 ] && {
 			echo "================================================================================" && rm -f gcc-$GCC32-32.tar.gz
-			echo "本次编译中止！原因：32 位 GCC 交叉编译器下载失败"
+			echo "本次編譯中止！原因：32 位 GCC 交叉編譯器下載失敗"
 			echo "================================================================================" && return 2> /dev/null || exit
 		}
 	}
@@ -198,28 +214,28 @@ GCC32_CUSTOM=false
 
 cd $KERNEL_NAME-$KERNEL_SOURCE_BRANCH
 echo "================================================================================" && num="" && SUMODE=""
-echo "你想使用哪种方式加入 KernelSU 到内核中？"
+echo "你想使用哪種方式加入 KernelSU 到內核中？"
 [ ! -d [kK][eE][rR][nN][eE][lL][sS][uU] -o -f Need_KernelSU ] && {
-	echo "1.使用 kprobe 集成（有可能编译成功但无法开机，可以使用第二种方式进行尝试）"
-	echo "2.修改内核源码（仅支持 KernelSU 0.6.1 或以上版本，0.6.0 或以下版本请用第一种方式进行尝试）"
+	echo "1.使用 kprobe 集成（有可能編譯成功但無法開機，可以使用第二種方式進行嘗試）"
+	echo "2.修改內核源碼（僅支持 KernelSU 0.6.1 或以上版本，0.6.0 或以下版本請用第一種方式進行嘗試）"
 }
-echo "3.不作任何修改直接编译（第一次编译建议先用此选项进行尝试，如果编译成功并能正常开机后再加入 KernelSU 进行重新编译）"
-[ -f retry ] && echo "4.上一次编译可能各种原因中断，接回上一次编译进度继续编译（选这个确认是否每次都在同一个位置出错）"
-[ -f BUILD_KERNEL_COMPLETE -a -f Need_KernelSU ] && echo "5.编译完成并 KernelSU 已能正常使用，但手机重启后应用授权列表会丢失，选这里尝试使用修复方案"
-[ -d KernelSU -a -f Need_KernelSU ] && echo "6.已手动修改完 KernelSU 代码，直接编译（跳过下载 KernelSU 源码步骤，需要手动修改代码修复问题时选这个）"
-echo "7.已编译完成，仅修改内核包名进行打包操作"
-echo "0.退出本次编译"
+echo "3.不作任何修改直接編譯（第一次編譯建議先用此選項進行嘗試，如果編譯成功並能正常開機後再加入 KernelSU 進行重新編譯）"
+[ -f retry ] && echo "4.上一次編譯可能各種原因中斷，接回上一次編譯進度繼續編譯（選這個確認是否每次都在同一個位置出錯）"
+[ -f BUILD_KERNEL_COMPLETE -a -f Need_KernelSU ] && echo "5.編譯完成並 KernelSU 已能正常使用，但手機重啟後應用授權列表會丟失，選這裡嘗試使用修復方案"
+[ -d KernelSU -a -f Need_KernelSU ] && echo "6.已手動修改完 KernelSU 代碼，直接編譯（跳過下載 KernelSU 源碼步驟，需要手動修改代碼修復問題時選這個）"
+echo "7.已編譯完成，僅修改內核包名進行打包操作"
+echo "0.退出本次編譯"
 echo "================================================================================"
 
 while [[ "$num" != [0-7] ]];do
-	read -p "请输入正确的数字 > " num
+	read -p "請輸入正確的數字 > " num
 	case "$num" in
 	1)
 		SUMODE="使用 kprobe 集成"
 		[ -d [kK][eE][rR][nN][eE][lL][sS][uU] -a ! -f Need_KernelSU ] && num="" && SUMODE=""
 		;;
 	2)
-		SUMODE="修改内核源码"
+		SUMODE="修改內核源碼"
 		[ -d [kK][eE][rR][nN][eE][lL][sS][uU] -a ! -f Need_KernelSU ] && num="" && SUMODE=""
 		;;
 	4)
@@ -233,31 +249,31 @@ while [[ "$num" != [0-7] ]];do
 		;;
 	0)
 		echo "================================================================================"
-		echo "已退出本次编译"
+		echo "已退出本次編譯"
 		echo "================================================================================" && return 2> /dev/null || exit
 	esac
 done
 
 [[ "$num" = [1-2] ]] && {
 	echo "================================================================================"
-	echo "你想使用哪个版本的 KernelSU 加入到内核中？" && sunum="" && sutag="" && SUVERSION=""
+	echo "你想使用哪個版本的 KernelSU 加入到內核中？" && sunum="" && sutag="" && SUVERSION=""
 	echo "1.最新版"
-	echo "2.自定义输入版本号"
-	echo "0.退出本次编译"
+	echo "2.自定義輸入版本號"
+	echo "0.退出本次編譯"
 	echo "================================================================================"
 	while [[ "$sunum" != [0-2] ]];do
-		read -p "请输入正确的数字 > " sunum
+		read -p "請輸入正確的數字 > " sunum
 		case "$sunum" in
 		1)
 			SUVERSION="最新版"
 			;;
 		2)
-			read -p "请直接输入版本号，如：0.6.9 > " sutag
-			sutag=v$sutag && SUVERSION="自定义输入版本号 $sutag"
+			read -p "請直接輸入版本號，如：0.6.9 > " sutag
+			sutag=v$sutag && SUVERSION="自定義輸入版本號 $sutag"
 			;;
 		0)
 			echo "================================================================================"
-			echo "已退出本次编译"
+			echo "已退出本次編譯"
 			echo "================================================================================" && return 2> /dev/null || exit
 		esac
 	done
@@ -285,13 +301,13 @@ done
 	[ ! -f drivers/common/Kconfig.backup ] && cp drivers/Kconfig drivers/common/Kconfig.backup 2> /dev/null
 	[ ! -f drivers/common/Makefile.backup ] && cp drivers/Makefile drivers/common/Makefile.backup 2> /dev/null
 	echo "================================================================================" && rm -rf out
-	echo " 准备下载 KernelSU 源码，请等候······"
+	echo " 准備下載 KernelSU 源碼，請等候······"
 	echo "================================================================================" && read -t 1
 	if [ "${sutag::1}" = v ];then
 		wget https://github.com/tiann/KernelSU/archive/refs/tags/$sutag.tar.gz
 		[ "$?" != 0 ] && {
 			echo "================================================================================"
-			echo "本次编译中止！原因：KernelSU $SUVERSION 源码下载失败，请确认是否有此版本存在"
+			echo "本次編譯中止！原因：KernelSU $SUVERSION 源碼下載失敗，請確認是否有此版本存在"
 			echo "================================================================================" && return 2> /dev/null || exit
 		}
 		tar -zxf $sutag.tar.gz
@@ -300,7 +316,7 @@ done
 		git clone https://github.com/tiann/KernelSU
 		[ "$?" != 0 ] && {
 			echo "================================================================================"
-			echo "本次编译中止！原因：KernelSU $SUVERSION 源码下载失败"
+			echo "本次編譯中止！原因：KernelSU $SUVERSION 源碼下載失敗"
 			echo "================================================================================" && return 2> /dev/null || exit
 		}
 		cd KernelSU;git checkout "$(git describe --abbrev=0 --tags)" &> /dev/null
@@ -319,17 +335,17 @@ done
 
 [ "$num" = 5 ] && {
 	echo "================================================================================"
-	echo "请选择以下可用修复方案" && fixnum=""
-	echo "1.尝试修复开机后丢失用户授权列表（ KernelSU 0.6.7 或以上版本）"
-	echo "X.因为没有其它有问题的设备用于测试，所以其它的修复代码暂时不写了，请自行参考下面地址"
-	echo "X.其他有可能会遇到的问题解决方案：https://github.com/tiann/KernelSU/issues/943"
-	echo "0.退出本次编译"
+	echo "請選擇以下可用修復方案" && fixnum=""
+	echo "1.嘗試修復開機後丟失用戶授權列表（ KernelSU 0.6.7 或以上版本）"
+	echo "X.因為沒有其它有問題的設備用於測試，所以其它的修復代碼暫時不寫了，請自行參考下面地址"
+	echo "X.其他有可能會遇到的問題解決方案：https://github.com/tiann/KernelSU/issues/943"
+	echo "0.退出本次編譯"
 	echo "================================================================================"
 	while [[ "$fixnum" != [0-1] ]];do
-		read -p "请输入正确的数字 > " fixnum
+		read -p "請輸入正確的數字 > " fixnum
 		[ "$fixnum" = 0 ] && {
 			echo "================================================================================"
-			echo "已退出本次编译"
+			echo "已退出本次編譯"
 			echo "================================================================================" && return 2> /dev/null || exit
 		}
 	done;rm -rf out
@@ -339,22 +355,22 @@ done
 [ "$num" = 1 ] && {
 	[ ! -f arch/$ARCH/configs/$KERNEL_CONFIG.backup ] && cp arch/$ARCH/configs/$KERNEL_CONFIG arch/$ARCH/configs/$KERNEL_CONFIG.backup
 	[ $DISABLE_LTO = true ] && {
-		sed -i 's/CONFIG_LTO=y/CONFIG_LTO=n/' arch/$ARCH/configs/$KERNEL_CONFIG && echo "参数 CONFIG_LTO=y 已修改为 CONFIG_LTO=n" && read -t 1
-		sed -i 's/CONFIG_LTO_CLANG=y/CONFIG_LTO_CLANG=n/' arch/$ARCH/configs/$KERNEL_CONFIG && echo "参数 CONFIG_LTO_CLANG=y 已修改为 CONFIG_LTO_CLANG=n" && read -t 1
-		sed -i 's/CONFIG_THINLTO=y/CONFIG_THINLTO=n/' arch/$ARCH/configs/$KERNEL_CONFIG && echo "参数 CONFIG_THINLTO=y 已修改为 CONFIG_THINLTO=n" && read -t 1
-		[ -z "$(grep CONFIG_LTO_NONE=y arch/$ARCH/configs/$KERNEL_CONFIG)" ] && sed -i 's/CONFIG_LTO_NONE /d/' arch/$ARCH/configs/$KERNEL_CONFIG && echo "CONFIG_LTO_NONE=y" >> arch/$ARCH/configs/$KERNEL_CONFIG && echo "参数 CONFIG_LTO_NONE=y 已加入到配置文件中" && read -t 1
+		sed -i 's/CONFIG_LTO=y/CONFIG_LTO=n/' arch/$ARCH/configs/$KERNEL_CONFIG && echo "參數 CONFIG_LTO=y 已修改為 CONFIG_LTO=n" && read -t 1
+		sed -i 's/CONFIG_LTO_CLANG=y/CONFIG_LTO_CLANG=n/' arch/$ARCH/configs/$KERNEL_CONFIG && echo "參數 CONFIG_LTO_CLANG=y 已修改為 CONFIG_LTO_CLANG=n" && read -t 1
+		sed -i 's/CONFIG_THINLTO=y/CONFIG_THINLTO=n/' arch/$ARCH/configs/$KERNEL_CONFIG && echo "參數 CONFIG_THINLTO=y 已修改為 CONFIG_THINLTO=n" && read -t 1
+		[ -z "$(grep CONFIG_LTO_NONE=y arch/$ARCH/configs/$KERNEL_CONFIG)" ] && sed -i 's/CONFIG_LTO_NONE /d/' arch/$ARCH/configs/$KERNEL_CONFIG && echo "CONFIG_LTO_NONE=y" >> arch/$ARCH/configs/$KERNEL_CONFIG && echo "參數 CONFIG_LTO_NONE=y 已加入到配置文件中" && read -t 1
 	}
 	[ $DISABLE_CC_WERROR = true ] && {
-		[ -z "$(grep CONFIG_CC_WERROR=n arch/$ARCH/configs/$KERNEL_CONFIG)" ] && sed -i 's/CONFIG_CC_WERROR /d/' arch/$ARCH/configs/$KERNEL_CONFIG && echo "CONFIG_CC_WERROR=n" >> arch/$ARCH/configs/$KERNEL_CONFIG && echo "参数 CONFIG_CC_WERROR=n 已加入到配置文件中" && read -t 1
+		[ -z "$(grep CONFIG_CC_WERROR=n arch/$ARCH/configs/$KERNEL_CONFIG)" ] && sed -i 's/CONFIG_CC_WERROR /d/' arch/$ARCH/configs/$KERNEL_CONFIG && echo "CONFIG_CC_WERROR=n" >> arch/$ARCH/configs/$KERNEL_CONFIG && echo "參數 CONFIG_CC_WERROR=n 已加入到配置文件中" && read -t 1
 	}
 	[ $ADD_KPROBES_CONFIG = true ] && {
-		[ -z "$(grep CONFIG_MODULES=y arch/$ARCH/configs/$KERNEL_CONFIG)" ] && sed -i 's/CONFIG_MODULES /d/' arch/$ARCH/configs/$KERNEL_CONFIG && echo "CONFIG_MODULES=y" >> arch/$ARCH/configs/$KERNEL_CONFIG && echo "参数 CONFIG_MODULES=y 已加入到配置文件中" && read -t 1
-		[ -z "$(grep CONFIG_KPROBES=y arch/$ARCH/configs/$KERNEL_CONFIG)" ] && sed -i 's/CONFIG_KPROBES /d/' arch/$ARCH/configs/$KERNEL_CONFIG && echo "CONFIG_KPROBES=y" >> arch/$ARCH/configs/$KERNEL_CONFIG && echo "参数 CONFIG_KPROBES=y 已加入到配置文件中" && read -t 1
-		[ -z "$(grep CONFIG_HAVE_KPROBES=y arch/$ARCH/configs/$KERNEL_CONFIG)" ] && sed -i 's/CONFIG_HAVE_KPROBES /d/' arch/$ARCH/configs/$KERNEL_CONFIG && echo "CONFIG_HAVE_KPROBES=y" >> arch/$ARCH/configs/$KERNEL_CONFIG && echo "参数 CONFIG_HAVE_KPROBES=y 已加入到配置文件中" && read -t 1
-		[ -z "$(grep CONFIG_KPROBE_EVENTS=y arch/$ARCH/configs/$KERNEL_CONFIG)" ] && sed -i 's/CONFIG_KPROBE_EVENTS /d/' arch/$ARCH/configs/$KERNEL_CONFIG && echo "CONFIG_KPROBE_EVENTS=y" >> arch/$ARCH/configs/$KERNEL_CONFIG && echo "参数 CONFIG_KPROBE_EVENTS=y 已加入到配置文件中" && read -t 1
+		[ -z "$(grep CONFIG_MODULES=y arch/$ARCH/configs/$KERNEL_CONFIG)" ] && sed -i 's/CONFIG_MODULES /d/' arch/$ARCH/configs/$KERNEL_CONFIG && echo "CONFIG_MODULES=y" >> arch/$ARCH/configs/$KERNEL_CONFIG && echo "參數 CONFIG_MODULES=y 已加入到配置文件中" && read -t 1
+		[ -z "$(grep CONFIG_KPROBES=y arch/$ARCH/configs/$KERNEL_CONFIG)" ] && sed -i 's/CONFIG_KPROBES /d/' arch/$ARCH/configs/$KERNEL_CONFIG && echo "CONFIG_KPROBES=y" >> arch/$ARCH/configs/$KERNEL_CONFIG && echo "參數 CONFIG_KPROBES=y 已加入到配置文件中" && read -t 1
+		[ -z "$(grep CONFIG_HAVE_KPROBES=y arch/$ARCH/configs/$KERNEL_CONFIG)" ] && sed -i 's/CONFIG_HAVE_KPROBES /d/' arch/$ARCH/configs/$KERNEL_CONFIG && echo "CONFIG_HAVE_KPROBES=y" >> arch/$ARCH/configs/$KERNEL_CONFIG && echo "參數 CONFIG_HAVE_KPROBES=y 已加入到配置文件中" && read -t 1
+		[ -z "$(grep CONFIG_KPROBE_EVENTS=y arch/$ARCH/configs/$KERNEL_CONFIG)" ] && sed -i 's/CONFIG_KPROBE_EVENTS /d/' arch/$ARCH/configs/$KERNEL_CONFIG && echo "CONFIG_KPROBE_EVENTS=y" >> arch/$ARCH/configs/$KERNEL_CONFIG && echo "參數 CONFIG_KPROBE_EVENTS=y 已加入到配置文件中" && read -t 1
 	}
 	[ $ADD_OVERLAYFS_CONFIG = true ] && {
-		[ -z "$(grep CONFIG_OVERLAY_FS=y arch/$ARCH/configs/$KERNEL_CONFIG)" ] && sed -i 's/CONFIG_OVERLAY_FS /d/' arch/$ARCH/configs/$KERNEL_CONFIG && echo "CONFIG_OVERLAY_FS=y" >> arch/$ARCH/configs/$KERNEL_CONFIG && echo "参数 CONFIG_OVERLAY_FS=y 已加入到配置文件中" && read -t 1
+		[ -z "$(grep CONFIG_OVERLAY_FS=y arch/$ARCH/configs/$KERNEL_CONFIG)" ] && sed -i 's/CONFIG_OVERLAY_FS /d/' arch/$ARCH/configs/$KERNEL_CONFIG && echo "CONFIG_OVERLAY_FS=y" >> arch/$ARCH/configs/$KERNEL_CONFIG && echo "參數 CONFIG_OVERLAY_FS=y 已加入到配置文件中" && read -t 1
 	}
 }
 
@@ -462,16 +478,16 @@ EOF
 [[ "$num" = [1-3,5-6] ]] && {
 	[ -d out ] && {
 	#	echo "================================================================================"
-	#	echo "检测到有上一次编译留下的文件，可能会影响编译结果，是否删除？" && del=""
-	#	echo "1.确认删除"
-	#	echo "0.跳过，继续编译"
+	#	echo "檢測到有上一次編譯留下的文件，可能會影響編譯結果，是否刪除？" && del=""
+	#	echo "1.確認刪除"
+	#	echo "0.跳過，繼續編譯"
 	#	echo "================================================================================"
 	#	while [[ "$del" != [0-1] ]];do
-	#		read -p "请输入正确的数字 > " del
+	#		read -p "請輸入正確的數字 > " del
 	#		[ "$del" = 1 ] && {
 				rm -rf out
 				echo "================================================================================"
-				echo " 文件夹 $BULID_KERNEL_DIR/$KERNEL_NAME-$KERNEL_SOURCE_BRANCH/out 已删除"
+				echo " 文件夾 $BULID_KERNEL_DIR/$KERNEL_NAME-$KERNEL_SOURCE_BRANCH/out 已刪除"
 				echo "================================================================================" && read -t 1
 	#		}
 	#	done
@@ -489,45 +505,45 @@ EOF
 	if [ "$?" = 0 ];then
 		[ -d KernelSU -a -f Need_KernelSU ] && touch BUILD_KERNEL_COMPLETE
 		echo "================================================================================"
-		echo "内核仓库：$KERNEL_SOURCE"
-		echo "仓库分支：$KERNEL_SOURCE_BRANCH"
+		echo "內核倉庫：$KERNEL_SOURCE"
+		echo "倉庫分支：$KERNEL_SOURCE_BRANCH"
 		[ "$CLANG_CUSTOM" = true ] && \
-		echo "自定义 Clang 编译器：$CLANG_DIR" || \
-		echo "Clang 编译器：$CLANG_BRANCH-$CLANG_VERSION"
+		echo "自定義 Clang 編譯器：$CLANG_DIR" || \
+		echo "Clang 編譯器：$CLANG_BRANCH-$CLANG_VERSION"
 		[ "$GCC64_CUSTOM" = true ] && \
-		echo "自定义 64 位 Gcc 交叉编译器：$GCC64_DIR" || \
-		echo "64 位 Gcc 交叉编译器：$GCC64"
+		echo "自定義 64 位 Gcc 交叉編譯器：$GCC64_DIR" || \
+		echo "64 位 Gcc 交叉編譯器：$GCC64"
 		[ "$GCC32_CUSTOM" = true ] && \
-		echo "自定义 32 位 Gcc 交叉编译器：$GCC32_DIR" || \
-		echo "32 位 Gcc 交叉编译器：$GCC32"
+		echo "自定義 32 位 Gcc 交叉編譯器：$GCC32_DIR" || \
+		echo "32 位 Gcc 交叉編譯器：$GCC32"
 		echo "加入 KernelSU 方式：$SUMODE"
 		echo "加入 KernelSU 版本：$SUVERSION"
-		echo "本次编译使用指令：make -j$(nproc --all) O=out $(echo $BUILDKERNEL_CMDS | sed ':i;N;s/\n/ /;ti')"
+		echo "本次編譯使用指令：make -j$(nproc --all) O=out $(echo $BUILDKERNEL_CMDS | sed ':i;N;s/\n/ /;ti')"
 		echo "================================================================================"
-		echo "编译成功！将进行 boot.img 文件重新打包"
+		echo "編譯成功！將進行 boot.img 文件重新打包"
 		echo "================================================================================" && num=7 && rm -f retry && read -t 3
 	else
 		echo "================================================================================"
-		echo "内核仓库：$KERNEL_SOURCE"
-		echo "仓库分支：$KERNEL_SOURCE_BRANCH"
+		echo "內核倉庫：$KERNEL_SOURCE"
+		echo "倉庫分支：$KERNEL_SOURCE_BRANCH"
 		[ "$CLANG_CUSTOM" = true ] && \
-		echo "自定义 Clang 编译器：$CLANG_DIR" || \
-		echo "Clang 编译器：$CLANG_BRANCH-$CLANG_VERSION"
+		echo "自定義 Clang 編譯器：$CLANG_DIR" || \
+		echo "Clang 編譯器：$CLANG_BRANCH-$CLANG_VERSION"
 		[ "$GCC64_CUSTOM" = true ] && \
-		echo "自定义 64 位 Gcc 交叉编译器：$GCC64_DIR" || \
-		echo "64 位 Gcc 交叉编译器：$GCC64"
+		echo "自定義 64 位 Gcc 交叉編譯器：$GCC64_DIR" || \
+		echo "64 位 Gcc 交叉編譯器：$GCC64"
 		[ "$GCC32_CUSTOM" = true ] && \
-		echo "自定义 32 位 Gcc 交叉编译器：$GCC32_DIR" || \
-		echo "32 位 Gcc 交叉编译器：$GCC32"
+		echo "自定義 32 位 Gcc 交叉編譯器：$GCC32_DIR" || \
+		echo "32 位 Gcc 交叉編譯器：$GCC32"
 		echo "加入 KernelSU 方式：$SUMODE"
 		echo "加入 KernelSU 版本：$SUVERSION"
-		echo "本次编译使用指令：make -j$(nproc --all) O=out $(echo $BUILDKERNEL_CMDS | sed ':i;N;s/\n/ /;ti')"
+		echo "本次編譯使用指令：make -j$(nproc --all) O=out $(echo $BUILDKERNEL_CMDS | sed ':i;N;s/\n/ /;ti')"
 		echo "================================================================================"
-		echo "编译失败！请自行根据上面编译过程中的提示检查错误"
-		echo "若非每次都在同一个地方出错，有可能是系统内存不足导致卡机失败"
-		echo "可以直接重新编译进行尝试，如果是用虚拟机编译请尽量分配多一点的内存给虚拟机"
-		echo "如果只提示（make[*]: *** [*****/*****：*****] 错误 *）"
-		echo "但这条信息的上面没有明确提示什么错误的，很有可能是这个内核仓库源码本身有问题"
+		echo "編譯失敗！請自行根據上面編譯過程中的提示檢查錯誤"
+		echo "若非每次都在同一個地方出錯，有可能是系統內存不足導致卡機失敗"
+		echo "可以直接重新編譯進行嘗試，如果是用虛擬機編譯請盡量分配多一點的內存給虛擬機"
+		echo "如果只提示（make[*]: *** [*****/*****：*****] 錯誤 *）"
+		echo "但這條信息的上面沒有明確提示什麼錯誤的，很有可能是這個內核倉庫源碼本身有問題"
 		echo "================================================================================"
 	fi;
 }
@@ -536,16 +552,16 @@ EOF
 	cd $BULID_KERNEL_DIR && KERNEL_IMAGE_NAME=""
 	while [ ! -f $KERNEL_NAME-$KERNEL_SOURCE_BRANCH/out/arch/$ARCH/boot/$KERNEL_IMAGE_NAME ];do
 		echo "================================================================================" && image=""
-		[ -n "$KERNEL_IMAGE_NAME" ] && echo "内核 $KERNEL_NAME-$KERNEL_SOURCE_BRANCH/out/arch/$ARCH/boot/$KERNEL_IMAGE_NAME 文件不存在！请重新选择内核文件名" || \
-		echo "哪一个是编译出来的内核文件？这将会用于打包 boot.img（一般就下面三个其中一个，不知道的可以逐个尝试）"
+		[ -n "$KERNEL_IMAGE_NAME" ] && echo "內核 $KERNEL_NAME-$KERNEL_SOURCE_BRANCH/out/arch/$ARCH/boot/$KERNEL_IMAGE_NAME 文件不存在！請重新選擇內核文件名" || \
+		echo "哪一個是編譯出來的內核文件？這將會用於打包 boot.img（一般就下面三個其中一個，不知道的可以逐個嘗試）"
 		echo "1.Image"
 		echo "2.Image.gz"
 		echo "3.Image.gz-dtb"
-		echo "4.自定义输入"
+		echo "4.自定義輸入"
 		echo "0.退出打包操作"
 		echo "================================================================================"
 		while [[ "$image" != [0-4] ]];do
-			read -p "请输入正确的数字 > " image
+			read -p "請輸入正確的數字 > " image
 			case "$image" in
 			1)
 				KERNEL_IMAGE_NAME=Image
@@ -557,7 +573,7 @@ EOF
 				KERNEL_IMAGE_NAME=Image.gz-dtb
 				;;
 			4)
-				read -p "请输入编译出来后的内核文件的名称： > " KERNEL_IMAGE_NAME
+				read -p "請輸入編譯出來後的內核文件的名稱： > " KERNEL_IMAGE_NAME
 				;;
 			0)
 				echo "================================================================================"
@@ -569,17 +585,17 @@ EOF
 	img_repack_tools/unpack_bootimg.py --boot_img boot-source.img --format mkbootimg --out=img_repack_tools/out > BuildBootInfo 2> /dev/null
 	[ "$?" != 0 ] && {
 		echo "================================================================================" && rm -f BuildBootInfo
-		echo "本次打包中止！原因：boot-source.img 文件错误（可能未完全下载成功？）"
+		echo "本次打包中止！原因：boot-source.img 文件錯誤（可能未完全下載成功？）"
 		echo "================================================================================" && return 2> /dev/null || exit
 	}
 	echo "cp $KERNEL_NAME-$KERNEL_SOURCE_BRANCH/out/arch/$ARCH/boot/$KERNEL_IMAGE_NAME img_repack_tools/out/kernel" >> BuildBoot
 	echo "img_repack_tools/mkbootimg.py $(cat BuildBootInfo) -o boot.img" >> BuildBoot
 	echo "================================================================================" && source BuildBoot
-	echo "打包成功！打包后的 boot.img 文件已存放于 $BULID_KERNEL_DIR 中"
-	echo "fastboot 刷入时建议不要直接加入 flash 参数来进行刷入，等能开机了再真正刷入到手机"
-	echo "刷入手机后首次开机可能会比较慢，请耐心等候"
-	echo "如果加入 KernelSU 后能正常使用，但有各种小问题，可再运行本脚本选 5 尝试进行修复"
-	echo "脚本制作不易，如果本脚本对你有用，希望能打赏支持一下！非常感谢！！！"
+	echo "打包成功！打包後的 boot.img 文件已存放於 $BULID_KERNEL_DIR 中"
+	echo "fastboot 刷入時建議不要直接加入 flash 參數來進行刷入，等能開機了再真正刷入到手機"
+	echo "刷入手機後首次開機可能會比較慢，請耐心等候"
+	echo "如果加入 KernelSU 後能正常使用，但有各種小問題，可再運行本腳本選 5 嘗試進行修復"
+	echo "腳本制作不易，如果本腳本對你有用，希望能打賞支持一下！非常感謝！！！"
 	echo "支持一下：https://github.com/xilaochengv/BuildKernelSU"
 	echo "================================================================================" && rm -f BuildBootInfo BuildBoot
 }
